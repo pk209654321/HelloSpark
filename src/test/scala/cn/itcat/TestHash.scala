@@ -7,6 +7,8 @@ object TestHash {
 
   def main(args: Array[String]) {
     println("a")
+    println("a")
+    println("a")
   }
 
 }
