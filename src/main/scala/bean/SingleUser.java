@@ -4,29 +4,34 @@ package bean;
  * Created by lenovo on 2018/7/3.
  */
 public class SingleUser {
- /*   id	bigint
-    SingleUserID	bigint
-    SingleUserName	varchar
-    SingleUserPhone	varchar
-    SingleDesire	varchar
-    SingleRegion	varchar
-    SingleEmployTime	bigint
-    SingleClick	bigint
-    SingleRefluxDay	bigint
-    SingleRecordDate	varchar
-    SingleBuy	varchar
-    QuantumRefluxDay	bigint
-QuantumBuy	bigint
-AverageDay	bigint
-*/
+    /*id	bigint
+    single_user_id	bigint
+    single_user_name	varchar
+    single_user_phone	varchar
+    single_desire	varchar
+    single_region	varchar
+    single_employ_time	bigint
+    single_click	bigint
+    single_reflux_day	bigint
+    single_record_date	varchar
+    single_buy	varchar
+    quantum_reflux_day	bigint
+    quantum_buy	bigint
+    average_day	bigint
+    insert_time	datetime
+    last_time	datetime
+    course_id	bigint
+    page_type	bigint
+    ad_id	bigint*/
+
     private Long id;
     private Long SingleUserID;
     private String SingleUserName;
     private String SingleUserPhone;
     private String SingleDesire;
     private String SingleRegion;
-    private String SingleEmployTime;
-    private String SingleClick;
+    private Long SingleEmployTime;
+    private Long SingleClick;
     private Long SingleRefluxDay;
     private String SingleRecordDate;
     private String SingleBuy;
@@ -34,6 +39,42 @@ AverageDay	bigint
     private Long QuantumBuy;
     private Long AverageDay;
     private Long courseId;
+    private String insertTime;
+    private String lastTime;
+    private Long pageType;
+    private Long adId;
+
+    public String getInsertTime() {
+        return insertTime;
+    }
+
+    public void setInsertTime(String insertTime) {
+        this.insertTime = insertTime;
+    }
+
+    public String getLastTime() {
+        return lastTime;
+    }
+
+    public void setLastTime(String lastTime) {
+        this.lastTime = lastTime;
+    }
+
+    public Long getPageType() {
+        return pageType;
+    }
+
+    public void setPageType(Long pageType) {
+        this.pageType = pageType;
+    }
+
+    public Long getAdId() {
+        return adId;
+    }
+
+    public void setAdId(Long adId) {
+        this.adId = adId;
+    }
 
     public Long getCourseId() {
         return courseId;
@@ -115,22 +156,6 @@ AverageDay	bigint
         SingleRegion = singleRegion;
     }
 
-    public String getSingleEmployTime() {
-        return SingleEmployTime;
-    }
-
-    public void setSingleEmployTime(String singleEmployTime) {
-        SingleEmployTime = singleEmployTime;
-    }
-
-    public String getSingleClick() {
-        return SingleClick;
-    }
-
-    public void setSingleClick(String singleClick) {
-        SingleClick = singleClick;
-    }
-
     public Long getSingleRefluxDay() {
         return SingleRefluxDay;
     }
@@ -153,5 +178,21 @@ AverageDay	bigint
 
     public void setSingleBuy(String singleBuy) {
         SingleBuy = singleBuy;
+    }
+
+    public Long getSingleEmployTime() {
+        return SingleEmployTime;
+    }
+
+    public void setSingleEmployTime(Long singleEmployTime) {
+        SingleEmployTime = singleEmployTime;
+    }
+
+    public Long getSingleClick() {
+        return SingleClick;
+    }
+
+    public void setSingleClick(Long singleClick) {
+        SingleClick = singleClick;
     }
 }

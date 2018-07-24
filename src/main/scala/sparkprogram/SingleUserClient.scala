@@ -132,42 +132,11 @@ object SingleUserClient {
       //update
     })
     //=============================================================================================
-    //用户每天在线时间最后一次
-    /*val userDayTime: RDD[((Integer, Date), String)] = parallelize.map(line => {
-      val time = line.getLeaveTime
-      val dateDay: Date = TimeUtil.getFastTimeFormat.parse(time)
-      val userId = line.getUserId
-      ((userId, dateDay), time)
-    })
-    val userDayTimeList: RDD[((Integer, Date), Iterable[String])] = userDayTime.groupByKey()
-    val userDateLast: RDD[(Integer, Date, String)] = userDayTimeList.map(line => {
-      val iterable = line._2
-      val userId = line._1._1
-      val date = line._1._2
-      val sortedSet: mutable.SortedSet[String] = mutable.SortedSet[String]()
-      for (elem <- iterable) {
-        if (StringUtils.isNotEmpty(elem)) {
-          sortedSet.add(elem)
-        }
-      }
-      val lastTime = sortedSet.last
-      (userId, date, lastTime)
-    })
-    /*userDateLast.foreach(line=> {
-      val userId: Integer = line._1
-      val day: Date = line._2
-      val last: String = line._3
-      val sql="update t_SingleUser set last_time=? where userId=? and insert_time=?"
-      val array=Array[String]()
-      dao.updateSingleUser()
-    })*/*/
+    //依据多个字段的值对课程/投顾老师所对应的用户排行
+
+
 
   }
 
-  def selectToday(date2String:String,userId:Int,courseId:Int,flag:Int): Int ={
-    val sqlSelectId="select * from t_SingleUser where insert_time=? and single_user_id=? and course_id=? and page_type=?"
-    val arraySelect=Array[String](date2String,userId.toString,courseId.toString,flag.toString)
-    val row: Int = dao.selectSingleUser(sqlSelectId,arraySelect)
-    row
-  }
+
 }

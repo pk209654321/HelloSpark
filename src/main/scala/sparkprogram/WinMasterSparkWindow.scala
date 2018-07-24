@@ -4,9 +4,9 @@ import java.util
 import java.util.Date
 
 import _root_.util.{IpUtil, TimeUtil}
-import bean.TCollect
+import bean.{SingleUser, TCollect}
 import constant.Constants
-import dao.ITCollectDao
+import dao.{ITSingleUserDao, ITCollectDao}
 import dao.factory.DAOFactory
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
@@ -56,6 +56,7 @@ object WinMasterSparkWindow {
     runJob(filterIos,Constants.IOS_FLAG,dayFlag)
     //执行汇总
     runJob(parallelize,Constants.TOTAL_FLAG,dayFlag)
+
     sc.stop()
     val stopped: Boolean = sc.isStopped
     println("任务是否执行结束"+stopped)
@@ -68,6 +69,14 @@ object WinMasterSparkWindow {
     SingleUserClient.doSingleUser(parallelize,flag,dayFlag)
     //SpecialList
     SpecialListClient.doSpecialList(parallelize,flag,dayFlag)
+  }
+  //(x-min) / (max-min)数据归一化处理
+  def normalizedFunction(num:Int,min:Int,max:Int): Int ={
+    num-min/max-min
+  }
+
+  def rankByThreeField(): Unit ={
+
   }
 }
 
