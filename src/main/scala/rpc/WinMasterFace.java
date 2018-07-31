@@ -8,4 +8,14 @@ public interface WinMasterFace {
     public String doSomething(String str);
     //public String
 
+    //点击老师获得最佳用户
+    public String getBestUserForAd();
+
+    //点击课程获得最佳用户
+    public String getBestUserForCourse();
+
+    //点击用户获得最佳课程和Ad
+    public String getBestCourseAndAdForUser();
+
+
 }

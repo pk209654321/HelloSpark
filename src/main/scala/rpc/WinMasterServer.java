@@ -12,6 +12,21 @@ public class WinMasterServer implements WinMasterFace {
         return str;
     }
 
+    @Override
+    public String getBestUserForAd() {
+        return null;
+    }
+
+    @Override
+    public String getBestUserForCourse() {
+        return null;
+    }
+
+    @Override
+    public String getBestCourseAndAdForUser() {
+        return null;
+    }
+
     public static void main(String[] args) throws  Exception {
         RPC.Server server = new RPC.Builder(new Configuration())
                 .setProtocol(WinMasterFace.class)
