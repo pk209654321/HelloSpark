@@ -73,7 +73,7 @@ object SingleUserClient {
       val courseId: Integer = line._5
       val adId: Integer = line._6
       val date2String: String = TimeUtil.getDate2String("yyyy-MM-dd",date)
-      val sql="insert t_SingleUser (single_employ_time,single_click,single_user_id,insert_time,course_id,page_type,ad_id) " +
+      val sql="insert t_singleuser (single_employ_time,single_click,single_user_id,insert_time,course_id,page_type,ad_id) " +
         "values " +
         "(?,?,?,?,?,?,?)"
       val array=Array[String](line._3.toString,line._2.toString,line._1.toString,date2String,courseId.toString,flag.toString,adId.toString)
@@ -123,7 +123,7 @@ object SingleUserClient {
         "QuantumBuy=?," +
         "AverageDay=? " +
         "where SingleUserID=? and date(InsertTime)=date_sub(date(now()),interval 1 day)"*/
-      val sql="update t_SingleUser set quantum_reflux_day=?," +
+      val sql="update t_singleuser set quantum_reflux_day=?," +
         "quantum_buy=?," +
         "average_day=? " +
         "where single_user_id=? and course_id=? and page_type=? and TO_DAYS(now())-TO_DAYS(insert_time)="+dayFlag

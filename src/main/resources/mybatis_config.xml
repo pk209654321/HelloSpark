@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC
+        "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <properties resource="jdbc.properties"></properties>
+    <typeAliases>
+        <typeAlias alias="role" type="bean.Role" />
+        <!-- 使用自动扫描的形式来定义别名，在Role中使用@Alias("role")注解进行说明-->
+        <!-- <package name="com.jCuckoo.chapter02.pojo"/> -->
+    </typeAliases>
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC" />
+            <dataSource type="POOLED">
+                <property name="driver" value="${driver}" />
+                <property name="url" value="${url}" />
+                <property name="username" value="${username}" />
+                <property name="password" value="${password}" />
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+       <mapper resource="mapper.RoleMapper.xml" />
+    </mappers>
+</configuration>

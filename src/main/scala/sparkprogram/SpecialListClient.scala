@@ -72,7 +72,7 @@ object SpecialListClient {
       //ExpertClick,ExpertDailyClick,ExpertUser,AdId,insertTime
      /* val nextDate: Date = TimeUtil.getNextDate(new Date(), -dayFlag)
       val string: String = TimeUtil.getDate2String("yyyy-MM-dd",nextDate)*/
-      val sql="insert t_Specialist (expert_click,expert_daily_click,expert_user,ad_id,insert_time,page_type)" +
+      val sql="insert t_specialist (expert_click,expert_daily_click,expert_user,ad_id,insert_time,page_type)" +
         "values(?,?,?,?,?,?)"
       val array= Array[String](line._2.toString,line._3.toString,line._4.toString,line._1.toString,date2String,flag.toString)
       val specialist: Int = dao.insertTSpecialist(sql,array)
@@ -100,7 +100,7 @@ object SpecialListClient {
       val fac= DAOFactory.getTSpecialistDao
       //update t_Specialist set ExpertAggregateUser=? " +
      // "where AdId=? and TO_DAYS(InsertTime)=TO_DAYS(date_sub(now(),interval 1 day))
-      val sql="update t_Specialist set expert_aggregate_user=? " +
+      val sql="update t_specialist set expert_aggregate_user=? " +
         "where ad_id=? and TO_DAYS(now())-TO_DAYS(insert_time)="+dayFlag
       val array= Array[String](line._2.toString,line._1.toString)
       val specialist: Int = fac.updateTSpecialist(sql,array)
@@ -147,7 +147,7 @@ object SpecialListClient {
       //val fac= DAOFactory.getTSpecialistDao
       // val sql="update t_Specialist set ExpertNewUser=? " +
       //"where AdId=? and TO_DAYS(InsertTime)=TO_DAYS(date_sub(now(),interval 1 day))"
-      val sql="update t_Specialist set expert_new_user=? " +
+      val sql="update t_specialist set expert_new_user=? " +
         "where ad_id=? and insert_time=? and page_type=?"
       val array= Array[String](line._2.toString,line._1._1.toString,date2String,flag.toString)
       dao.updateTSpecialist(sql,array)
@@ -155,7 +155,7 @@ object SpecialListClient {
   }
 
   def selectDaySpecial(date2String:String,adId:Int): Int ={
-    val sqlSelect="select * from t_Specialist where insert_time=? and ad_id=?"
+    val sqlSelect="select * from t_specialist where insert_time=? and ad_id=?"
     val arraySelect: Array[String] = Array[String](date2String,adId.toString)
     val row: Int = dao.selectTSpecialist(sqlSelect,arraySelect)
     row

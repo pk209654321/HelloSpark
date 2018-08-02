@@ -31,9 +31,10 @@ public class PhoenixConnectionTool {
         return conn;
     }
 
-    public static int insertUser(){
+    public static int insertUser(int id){
         Connection conn = getConnLocal();
-        String sql="upsert into user(id, account, passwd) values('005','admin','admin')";
+       // String a="00"
+        String sql="upsert into user(id, account, passwd) values('','admin','admin')";
         PreparedStatement pstmt;
         int i=0;
         try {
@@ -127,12 +128,9 @@ public class PhoenixConnectionTool {
 
     public static void main(String[] args) {
        // ConnectionTool.getAll();
-        for (int i=0;i<=1000000;i++){
-            int insertUser = PhoenixConnectionTool.insertUser();
+        for (int i=6;i<=50;i++){
+            int insertUser = PhoenixConnectionTool.insertUser(0);
             System.out.println("result:"+insertUser);
         }
-
-
-
     }
 }

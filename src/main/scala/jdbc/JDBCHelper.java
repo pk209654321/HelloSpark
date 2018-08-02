@@ -25,9 +25,17 @@ public class JDBCHelper {
 	static {
 		try {
 			//加载log4j配置
-			//String projectPath = PathUtil.projectPath+"/log4.properties";
-			//PropertyConfigurator.configure(projectPath);
-			String driver = ConfigurationManager.getProperty(Constants.JDBC_DRIVER);
+			String projectPath = PathUtil.projectPath+"\\log4.properties";
+			System.out.println("加载的log4j路径:"+projectPath);
+			PropertyConfigurator.configure(projectPath);
+			String flag = ConfigurationManager.getProperty(Constants.DATABASE_FLAG);
+			String key=null;
+			if(flag.equals("0")){//mysql
+				key=Constants.JDBC_DRIVER;
+			}else if(flag.equals("1")){//phoenix
+				key=Constants.PHOENIX_DRIVER;
+			}
+			String driver = ConfigurationManager.getProperty(key);
 			Class.forName(driver);
 		} catch (Exception e) {
 			e.printStackTrace();  
@@ -61,19 +69,18 @@ public class JDBCHelper {
 		
 		// 然后创建指定数量的数据库连接，并放入数据库连接池中
 		for(int i = 0; i < datasourceSize; i++) {
-			boolean local = ConfigurationManager.getBoolean(Constants.SPARK_LOCAL);
+			//boolean local = ConfigurationManager.getBoolean(Constants.SPARK_LOCAL);
+			//ConfigurationManager.getInteger()
 			String url = null;
 			String user = null;
 			String password = null;
-			
-			if(local) {
+			String flag = ConfigurationManager.getProperty(Constants.DATABASE_FLAG);
+			if(flag.equals("0")) {//mysql
 				url = ConfigurationManager.getProperty(Constants.JDBC_URL);
 				user = ConfigurationManager.getProperty(Constants.JDBC_USER);
 				password = ConfigurationManager.getProperty(Constants.JDBC_PASSWORD);
-			} else {
-				url = ConfigurationManager.getProperty(Constants.JDBC_URL_PROD);
-				user = ConfigurationManager.getProperty(Constants.JDBC_USER_PROD);
-				password = ConfigurationManager.getProperty(Constants.JDBC_PASSWORD_PROD);
+			}else if(flag.equals("1")){//phoenix
+				url = ConfigurationManager.getProperty(Constants.PHOENIX_URL);
 			}
 			
 			try {
@@ -87,15 +94,19 @@ public class JDBCHelper {
 	
 
 	public synchronized Connection getConnection() {
-		while(datasource.size() == 0) {
+		while (datasource.size() == 0) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}  
+			}
 		}
-
-		return datasource.poll();
+		Connection poll = datasource.poll();
+		if (poll == null) {
+		  return getConnection();
+		} else {
+			return poll;
+		}
 	}
 	
 
