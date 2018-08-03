@@ -21,9 +21,9 @@ object WinMasterSparkWindow {
   def main(args: Array[String]) {
     val range = args(0).toInt
     for (dayFlag <- (1 to range).reverse) {
-      println("查询的类容范围偏移量offset：" + range)
-      println("查询的类容范围偏移量offset：" + range)
-      println("查询的类容范围偏移量offset：" + range)
+      println("查询的类容范围偏移量offset：" + dayFlag)
+      println("查询的类容范围偏移量offset：" + dayFlag)
+      println("查询的类容范围偏移量offset：" + dayFlag)
       val local: Boolean = IpUtil.judgeLocal()
       var sparkConf: SparkConf = null
       if (local) {
@@ -58,7 +58,7 @@ object WinMasterSparkWindow {
       runJob(filterAnd, Constants.AND_FLAG, dayFlag)
       //执行ios 3
       runJob(filterIos, Constants.IOS_FLAG, dayFlag)
-      //执行汇总
+      //执行汇总 4
       runJob(parallelize, Constants.TOTAL_FLAG, dayFlag)
 
       sc.stop()
@@ -69,11 +69,15 @@ object WinMasterSparkWindow {
    // }
   def runJob(parallelize: RDD[TCollect],flag:Int,dayFlag:Int): Unit ={
     //collect
-    CollectAppOrWeiXin.doSparkAppOrWeiXin(parallelize,flag,dayFlag)
+    //CollectAppOrWeiXin.doSparkAppOrWeiXin(parallelize,flag,dayFlag)
     //singleUser
-    SingleUserClient.doSingleUser(parallelize,flag,dayFlag)
+    //SingleUserClient.doSingleUser(parallelize,flag,dayFlag)
     //SpecialList
-    SpecialListClient.doSpecialList(parallelize,flag,dayFlag)
+   //SpecialListClient.doSpecialList(parallelize,flag,dayFlag)
+     //筛选用户: 过滤掉app和汇总类型
+     if (flag!=Constants.APP_FLAG&&flag!=Constants.TOTAL_FLAG){
+       ScreenUserInfoClient.doScreenUserInfo(parallelize,flag,dayFlag)
+     }
   }
   //(x-min) / (max-min)数据归一化处理
   def normalizedFunction(num:Int,min:Int,max:Int): Int ={

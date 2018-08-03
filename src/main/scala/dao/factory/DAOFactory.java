@@ -49,4 +49,14 @@ public class DAOFactory {
 	public static IActivitiesOperationDao getActivitiesOperationDao(){
 		return new ActivitiesOperationDaoImpl();
 	}
+	public static IScreeningUserInfoDao getScreeningUserDao(){
+		return new ScreeningUserInfoDaoImpl();
+	}
+	public static IScreeningAdInfoDao getScreeningAdInfoDao(){
+		return new ScreeningAdInfoDaoImpl();
+	}
+	public static IScreeningCourseInfoDao getScreeningCourseInfoDao(){
+		return new ScreeningCourseInfoDaoImpl();
+	}
+
 }

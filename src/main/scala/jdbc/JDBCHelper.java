@@ -60,7 +60,6 @@ public class JDBCHelper {
 	
 	// 数据库连接池
 	private LinkedList<Connection> datasource = new LinkedList<Connection>();
-	
 
 	private JDBCHelper() {
 
