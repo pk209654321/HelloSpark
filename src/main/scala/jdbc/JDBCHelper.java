@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 /**
@@ -25,7 +26,7 @@ public class JDBCHelper {
 	static {
 		try {
 			//加载log4j配置
-			String projectPath = PathUtil.projectPath+"\\log4.properties";
+			String projectPath = PathUtil.projectPath+"\\printSql.properties";
 			System.out.println("加载的log4j路径:"+projectPath);
 			PropertyConfigurator.configure(projectPath);
 			String flag = ConfigurationManager.getProperty(Constants.DATABASE_FLAG);
@@ -59,7 +60,7 @@ public class JDBCHelper {
 	}
 	
 	// 数据库连接池
-	private LinkedList<Connection> datasource = new LinkedList<Connection>();
+	private  ConcurrentLinkedQueue<Connection> datasource = new ConcurrentLinkedQueue<Connection>();
 
 	private JDBCHelper() {
 
@@ -84,7 +85,7 @@ public class JDBCHelper {
 			
 			try {
 				Connection conn = DriverManager.getConnection(url, user, password);
-				datasource.push(conn);  
+				datasource.add(conn);
 			} catch (Exception e) {
 				e.printStackTrace(); 
 			}
@@ -134,13 +135,12 @@ public class JDBCHelper {
 			}
 			
 			rtn = pstmt.executeUpdate();
-			
 			conn.commit();
 		} catch (Exception e) {
 			e.printStackTrace();  
 		} finally {
 			if(conn != null) {
-				datasource.push(conn);  
+				datasource.add(conn);
 			}
 		}
 		
@@ -177,7 +177,7 @@ public class JDBCHelper {
 			e.printStackTrace();
 		} finally {
 			if(conn != null) {
-				datasource.push(conn);  
+				datasource.add(conn);
 			}
 		}
 	}
@@ -198,10 +198,7 @@ public class JDBCHelper {
 			
 			// 第一步：使用Connection对象，取消自动提交
 			conn.setAutoCommit(false);  
-			
 			pstmt = conn.prepareStatement(sql);
-
-			
 			// 第二步：使用PreparedStatement.addBatch()方法加入批量的SQL参数
 			if(paramsList != null && paramsList.size() > 0) {
 				for(Object[] params : paramsList) {
@@ -221,7 +218,7 @@ public class JDBCHelper {
 			e.printStackTrace();  
 		} finally {
 			if(conn != null) {
-				datasource.push(conn);  
+				datasource.add(conn);
 			}
 		}
 		

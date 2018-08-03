@@ -37,10 +37,10 @@ public class SqlSessionFactoryUtil {
         }
         return sqlSessionFactory;
     }
-    public static SqlSession openSqlSession() {
+    public static SqlSession openSqlSession(boolean boo) {
         if(sqlSessionFactory==null) {
             initSqlSessionFactory();
         }
-        return sqlSessionFactory.openSession();
+        return sqlSessionFactory.openSession(boo);
     }
 }

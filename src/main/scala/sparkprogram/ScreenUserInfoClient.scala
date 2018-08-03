@@ -72,7 +72,8 @@ object ScreenUserInfoClient {
 
   //按照投顾力度分析
   def doScreenAdInfo(parallelize: RDD[TCollect],flag:Int,dayFlag:Int): Unit ={
-    val userIdAdIdOneTime: RDD[((Integer, Integer), (Int, Double))] = parallelize.map(line => {
+    val filter: RDD[TCollect] = parallelize.filter(_.getAdviserId!=null)//将投顾为空的过滤掉
+    val userIdAdIdOneTime: RDD[((Integer, Integer), (Int, Double))] = filter.map(line => {
       val userId = line.getUserId
       val adId = line.getAdviserId
       val startTime = line.getEnterTime
@@ -104,7 +105,8 @@ object ScreenUserInfoClient {
 
   //根据课程粒度
   def doScreenCourseInfo(parallelize: RDD[TCollect],flag:Int,dayFlag:Int): Unit ={
-    val userIdCourseIdOneTime: RDD[((Integer, Integer), (Int, Double))] = parallelize.map(line => {
+    val filter: RDD[TCollect] = parallelize.filter(_.getCourseId!=null)
+    val userIdCourseIdOneTime: RDD[((Integer, Integer), (Int, Double))] = filter.map(line => {
       val userId = line.getUserId
       val courseId = line.getCourseId
       val startTime = line.getEnterTime
