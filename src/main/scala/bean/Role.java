@@ -5,7 +5,7 @@ import org.apache.ibatis.type.Alias;
 /**
  * Created by lenovo on 2018/8/1.
  */
-@Alias("role")
+@Alias("Role")
 public class Role {
     private Long id;
     private String roleName;

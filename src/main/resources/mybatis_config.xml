@@ -5,9 +5,8 @@
 <configuration>
     <properties resource="jdbc.properties"></properties>
     <typeAliases>
-        <typeAlias alias="role" type="bean.Role" />
         <!-- 使用自动扫描的形式来定义别名，在Role中使用@Alias("role")注解进行说明-->
-        <!-- <package name="com.jCuckoo.chapter02.pojo"/> -->
+        <package name="bean"/>
     </typeAliases>
     <environments default="development">
         <environment id="development">
@@ -26,6 +25,7 @@
         </environment>
     </environments>
     <mappers>
-       <mapper resource="RoleMapper.xml" />
+       <mapper resource="sqlMapper/RoleMapper.xml" />
+       <mapper resource="sqlMapper/ScreeningUserInfoMapper.xml" />
     </mappers>
 </configuration>

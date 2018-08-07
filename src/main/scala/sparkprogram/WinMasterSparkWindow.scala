@@ -69,15 +69,15 @@ object WinMasterSparkWindow {
    // }
   def runJob(parallelize: RDD[TCollect],flag:Int,dayFlag:Int): Unit ={
     //collect
-    CollectAppOrWeiXin.doSparkAppOrWeiXin(parallelize,flag,dayFlag)
+    //CollectAppOrWeiXin.doSparkAppOrWeiXin(parallelize,flag,dayFlag)
     //singleUser
-    SingleUserClient.doSingleUser(parallelize,flag,dayFlag)
+    //SingleUserClient.doSingleUser(parallelize,flag,dayFlag)
     //SpecialList
-    SpecialListClient.doSpecialList(parallelize,flag,dayFlag)
+    //SpecialListClient.doSpecialList(parallelize,flag,dayFlag)
      //筛选用户: 过滤掉app和汇总类型
-     /*if (flag!=Constants.APP_FLAG&&flag!=Constants.TOTAL_FLAG){
+     if (flag!=Constants.APP_FLAG&&flag!=Constants.TOTAL_FLAG){
        ScreenUserInfoClient.doScreenUserInfo(parallelize,flag,dayFlag)
-     }*/
+     }
   }
   //(x-min) / (max-min)数据归一化处理
   def normalizedFunction(num:Int,min:Int,max:Int): Int ={

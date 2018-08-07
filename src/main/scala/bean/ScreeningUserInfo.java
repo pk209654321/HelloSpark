@@ -1,8 +1,12 @@
 package bean;
 
+import org.apache.ibatis.type.Alias;
+
 /**
  * Created by lenovo on 2018/8/2.
  */
+
+@Alias("ScreeningUserInfo")
 public class ScreeningUserInfo {
    /* id	int
     user_id	int
@@ -17,8 +21,24 @@ public class ScreeningUserInfo {
     private Long userOnlineTime;
     private String createTime;
     private String backup;
+    private Integer pageType;
+    private Integer dayFlag;//天数标志;
 
+    public Integer getDayFlag() {
+        return dayFlag;
+    }
 
+    public void setDayFlag(Integer dayFlag) {
+        this.dayFlag = dayFlag;
+    }
+
+    public Integer getPageType() {
+        return pageType;
+    }
+
+    public void setPageType(Integer pageType) {
+        this.pageType = pageType;
+    }
 
     public Integer getId() {
         return id;

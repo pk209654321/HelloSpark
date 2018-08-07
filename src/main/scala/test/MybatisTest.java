@@ -10,15 +10,9 @@ import util.mybatis.SqlSessionFactoryUtil;
  */
 public class MybatisTest implements Runnable{
     private SqlSession sqlSession=SqlSessionFactoryUtil.openSqlSession(true);
-
-    public MybatisTest(){
-
-    }
+    private RoleMapper roleMapper=sqlSession.getMapper(RoleMapper.class);
     @Override
     public void run() {
-        SqlSession sqlSession=null;
-        sqlSession = SqlSessionFactoryUtil.openSqlSession(true);
-        RoleMapper roleMapper=sqlSession.getMapper(RoleMapper.class);
         Role role1 = new Role();
         role1.setNote("gggg");
         role1.setRoleName("aaaa");
@@ -26,7 +20,7 @@ public class MybatisTest implements Runnable{
     }
 
     public static void main(String[] args) {
-        for (int i=1;i<=1000;i++){
+        for (int i=1;i<=1;i++){
             Thread t=new Thread(new MybatisTest());
             t.start();
         }
