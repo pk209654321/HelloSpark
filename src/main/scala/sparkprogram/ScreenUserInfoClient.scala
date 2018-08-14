@@ -5,6 +5,7 @@ import java.util.Date
 import bean.TCollect
 import dao.{IScreeningCourseInfoDao, IScreeningAdInfoDao, IScreeningUserInfoDao}
 import dao.factory.DAOFactory
+import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.time.DateUtils
 import org.apache.spark.rdd.RDD
 import util.TimeUtil
@@ -45,7 +46,10 @@ object ScreenUserInfoClient {
       val userId = line.getUserId
       val startTime: String = line.getEnterTime
       val endTime: String = line.getLeaveTime
-      val difference: Double = TimeUtil.printDifference(startTime, endTime, "yyyy-MM-dd HH:mm:ss")
+      var difference:Double=1.0
+      if(StringUtils.isNotEmpty(startTime)&&StringUtils.isNotEmpty(endTime)){
+        difference= TimeUtil.printDifference(startTime, endTime, "yyyy-MM-dd HH:mm:ss")
+      }
       (userId, (1, difference))
     })
     val userIdCountTime: RDD[(Integer, (Int, Double))] = userIdOneTime.reduceByKey((x, y) => {
@@ -78,7 +82,10 @@ object ScreenUserInfoClient {
       val adId = line.getAdviserId
       val startTime = line.getEnterTime
       val endTime = line.getLeaveTime
-      val difference = TimeUtil.printDifference(startTime, endTime, "yyyy-MM-dd HH:mm:ss") * 60 //精确到秒
+      var difference:Double=1.0
+      if(StringUtils.isNotEmpty(startTime)&&StringUtils.isNotEmpty(endTime)){
+        difference = TimeUtil.printDifference(startTime, endTime, "yyyy-MM-dd HH:mm:ss") * 60 //精确到秒
+      }
       ((userId, adId), (1, difference))
     })
     val userIdAdIdCountTime: RDD[((Integer, Integer), (Int, Double))] = userIdAdIdOneTime.reduceByKey((x, y) => {
@@ -111,7 +118,10 @@ object ScreenUserInfoClient {
       val courseId = line.getCourseId
       val startTime = line.getEnterTime
       val endTime = line.getLeaveTime
-      val difference = TimeUtil.printDifference(startTime, endTime, "yyyy-MM-dd HH:mm:ss") * 60 //精确到秒
+      var difference:Double=1.0
+      if(StringUtils.isNotEmpty(startTime)&&StringUtils.isNotEmpty(endTime)){
+        difference = TimeUtil.printDifference(startTime, endTime, "yyyy-MM-dd HH:mm:ss") * 60 //精确到秒
+      }
       ((userId, courseId), (1, difference))
     })
     val userCourseCountTime: RDD[((Integer, Integer), (Int, Double))] = userIdCourseIdOneTime.reduceByKey((x, y) => {

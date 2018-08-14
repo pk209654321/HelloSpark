@@ -94,7 +94,7 @@ object CollectAppOrWeiXin {
      // val set= new mutable.HashSet[Int]()
       val typeId=line._1._2//直播/课程
       for (elem <- it) {
-        var time:Double=0.0
+        var time:Double=1.0
         if(StringUtils.isNotEmpty(elem.getEnterTime)&&StringUtils.isNotEmpty(elem.getLeaveTime)){
           time =DateTimeUtils.printDifference(elem.getEnterTime, elem.getLeaveTime,"yyyy-MM-dd HH:mm:ss")
           //println("time:" + time)

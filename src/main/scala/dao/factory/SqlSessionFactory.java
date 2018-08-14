@@ -2,6 +2,7 @@ package dao.factory;
 
 import mapper.RoleMapper;
 import mapper.ScreeningUserInfoMapper;
+import mapper.NewcomBagMapper;
 import org.apache.ibatis.session.SqlSession;
 import util.mybatis.SqlSessionFactoryUtil;
 
@@ -19,6 +20,8 @@ public class SqlSessionFactory {
         return sqlSession.getMapper(ScreeningUserInfoMapper.class);
     }
 
-
+    public static NewcomBagMapper getNewcomBagMapper(){
+        return  sqlSession.getMapper(NewcomBagMapper.class);
+    }
 
 }

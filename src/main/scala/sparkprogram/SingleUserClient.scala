@@ -57,7 +57,7 @@ object SingleUserClient {
       for (line <- it) {
         val startTime = line.getEnterTime
         val endTime = line.getLeaveTime
-        var difference: Double = 0.0
+        var difference: Double = 1.0
         if (StringUtils.isNotEmpty(line.getEnterTime) && StringUtils.isNotEmpty(line.getLeaveTime)) {
           //println("userId------------" + line.getId)
           difference = DateTimeUtils.printDifference(startTime, endTime, "yyyy-MM-dd HH:mm:ss")
@@ -104,7 +104,7 @@ object SingleUserClient {
         val string2Date: Date = TimeUtil.formatString2Date("yyyy-MM-dd", time)
         val startTime = line.getEnterTime
         val endTime = line.getLeaveTime
-        var difference: Double = 0.0
+        var difference: Double = 1.0
         if (StringUtils.isNotEmpty(line.getEnterTime) && StringUtils.isNotEmpty(line.getLeaveTime)) {
           difference = DateTimeUtils.printDifference(startTime, endTime, "yyyy-MM-dd HH:mm:ss")
         }
