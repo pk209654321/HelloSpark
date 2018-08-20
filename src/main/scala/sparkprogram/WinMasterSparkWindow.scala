@@ -20,26 +20,27 @@ import scala.collection.{JavaConversions, mutable}
 object WinMasterSparkWindow {
   def main(args: Array[String]) {
     val range = args(0).toInt
+    val parallelism = args(1).toInt
+    val local: Boolean = IpUtil.judgeLocal()
+    var sparkConf: SparkConf = null
+    if (local) {
+      sparkConf = new SparkConf().setAppName("WinMasterSparkWindow").setMaster("local[*]")
+    } else {
+      sparkConf = new SparkConf().setAppName("WinMasterSparkWindow")
+    }
+    val sc: SparkContext = new SparkContext(sparkConf)
+    sc.setLogLevel("WARN")
     for (dayFlag <- (1 to range).reverse) {
       println("查询的类容范围偏移量offset：" + dayFlag)
       println("查询的类容范围偏移量offset：" + dayFlag)
       println("查询的类容范围偏移量offset：" + dayFlag)
-      val local: Boolean = IpUtil.judgeLocal()
-      var sparkConf: SparkConf = null
-      if (local) {
-        sparkConf = new SparkConf().setAppName("WinMasterSparkWindow").setMaster("local[*]")
-      } else {
-        sparkConf = new SparkConf().setAppName("WinMasterSparkWindow")
-      }
-      val sc: SparkContext = new SparkContext(sparkConf)
-      sc.setLogLevel("WARN")
       val sql = "select * from t_collect where TO_DAYS(NOW()) - TO_DAYS(create_time) >=" + dayFlag
       val array = Array[String]()
       val tCollectDao: ITCollectDao = DAOFactory.getTCollectDao
       val collectList: util.List[TCollect] = tCollectDao.selectTCollectList(sql, array)
       //java=>scala
       val scalaBuffer: mutable.Buffer[TCollect] = JavaConversions.asScalaBuffer(collectList)
-      val parallelize: RDD[TCollect] = sc.parallelize(scalaBuffer, 10).cache()
+      val parallelize: RDD[TCollect] = sc.parallelize(scalaBuffer, parallelism).cache()
       //获取相应的数据
       //app,sourse=0
       val filterApp: RDD[TCollect] = parallelize.filter(_.getSource == 0)
@@ -60,24 +61,25 @@ object WinMasterSparkWindow {
       runJob(filterIos, Constants.IOS_FLAG, dayFlag)
       //执行汇总 4
       runJob(parallelize, Constants.TOTAL_FLAG, dayFlag)
-
-      sc.stop()
-      val stopped: Boolean = sc.isStopped
-      println("任务是否执行结束" + stopped)
     }
+    sc.stop()
+    val stopped: Boolean = sc.isStopped
+    println("任务是否执行结束" + stopped)
+
   }
-   // }
-  def runJob(parallelize: RDD[TCollect],flag:Int,dayFlag:Int): Unit ={
+
+  // }
+  def runJob(parallelize: RDD[TCollect], flag: Int, dayFlag: Int): Unit = {
     //collect
-    CollectAppOrWeiXin.doSparkAppOrWeiXin(parallelize,flag,dayFlag)
+    //CollectAppOrWeiXin.doSparkAppOrWeiXin(parallelize, flag, dayFlag)
     //singleUser
-    SingleUserClient.doSingleUser(parallelize,flag,dayFlag)
+    //SingleUserClient.doSingleUser(parallelize, flag, dayFlag)
     //SpecialList
-    SpecialListClient.doSpecialList(parallelize,flag,dayFlag)
-     //筛选用户: 过滤掉app和汇总类型
-   /*  if (flag!=Constants.APP_FLAG&&flag!=Constants.TOTAL_FLAG){
-       ScreenUserInfoClient.doScreenUserInfo(parallelize,flag,dayFlag)
-     }*/
+    //SpecialListClient.doSpecialList(parallelize, flag, dayFlag)
+    //筛选用户: 过滤掉app和汇总类型
+    if (flag != Constants.APP_FLAG && flag != Constants.TOTAL_FLAG) {
+      ScreenUserInfoClient.doScreenUserInfo(parallelize, flag, dayFlag)
+    }
   }
 }
 

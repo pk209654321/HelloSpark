@@ -26,7 +26,7 @@ public class JDBCHelper {
 	static {
 		try {
 			//加载log4j配置
-			String projectPath = PathUtil.projectPath+"\\printSql.properties";
+			String projectPath = PathUtil.projectPath+"/printSql.properties";
 			System.out.println("加载的log4j路径:"+projectPath);
 			PropertyConfigurator.configure(projectPath);
 			String flag = ConfigurationManager.getProperty(Constants.DATABASE_FLAG);

@@ -47,6 +47,7 @@ object NewcomClient {
       val cache: RDD[NewcomBag] = sc.parallelize(scalaBuffer, 10).cache()
       val getInnerData: RDD[NewcomBag] = cache.filter(_.getUserType=="1")//得到站内的数据
       val path="C:\\Users\\lenovo\\Desktop\\新人大礼包result\\banResult.xls"
+      
       //=============================================================================
       //各个banner位置的pv,uv
       //countBannerPvUv(getInnerData,path)
@@ -57,10 +58,10 @@ object NewcomClient {
       printToFile(path,contentCount)*/
       //=============================================================================
       //活动页面的pv,uv
-     /* countPagePvUv(getInnerData,path)*/
+      countPagePvUv(getInnerData,path)
       //=============================================================================
       //统计活动页面停留时间
-      countPageTime(getInnerData,path)
+     // countPageTime(getInnerData,path)
       //C:\Users\lenovo\Desktop\新人大礼包result
       sc.stop()
       val stopped: Boolean = sc.isStopped
@@ -101,8 +102,10 @@ object NewcomClient {
   }
   //活动页面的pv,uv
   def countPagePvUv(getInnerData: RDD[NewcomBag],path:String): Unit ={
-    val filterPageId: RDD[NewcomBag] = getInnerData.filter(_.getPageId!=null)//过滤出来只有pageId不为空的
-    val pageIdline: RDD[(String, NewcomBag)] = getInnerData.map(line =>(line.getPageId,line))
+    val filterPageId1: RDD[NewcomBag] = getInnerData.filter(_.getPageId!=null)//过滤出来只有pageId不为空的
+    val filterPageId2: RDD[NewcomBag] = getInnerData.filter(_.getPageId!="")//过滤出来只有pageId不为空的
+
+    val pageIdline: RDD[(String, NewcomBag)] = filterPageId2.map(line =>(line.getPageId,line))
     val pageIdLines: RDD[(String, Iterable[NewcomBag])] = pageIdline.groupByKey()
     val pageIdCountUser: RDD[(String, Int, Int)] = pageIdLines.map(line => {
       val pageId = line._1
@@ -134,9 +137,15 @@ object NewcomClient {
     val pageIdTwoTime = newData.map(line => {
       val startTime = line.getStartTime
       val endTime = line.getEndTime
-      val compareTo: Int = startTime.compareTo(endTime)
+//      val compareTo: Int = startTime.compareTo(endTime)
+//      var difference=1.0
+//      if(compareTo>0){
+//        difference = TimeUtil.printDifference(endTime, startTime, "yyyy-MM-dd HH:mm:ss") * 60 //精确到秒
+//      }else{
+//        difference= TimeUtil.printDifference(startTime, endTime, "yyyy-MM-dd HH:mm:ss") * 60 //精确到秒
+//      }
       val pageId: String = line.getPageId
-      val difference = TimeUtil.printDifference(startTime, endTime, "yyyy-MM-dd HH:mm:ss") * 60 //精确到秒
+
       (pageId, List[String](startTime,endTime))
     })
     val pageIdTime = pageIdTwoTime.groupByKey()
@@ -145,12 +154,12 @@ object NewcomClient {
       val pageId = line._1
       val iterable: Iterable[List[String]] = line._2
       val flatten: Iterable[String] = iterable.flatten
-      val filter = flatten.filter(_!="1970-01-01 08:00:00.0")
+      //val filter = flatten.filter(_!="1970-01-01 08:00:00.0")
       val setTimes = mutable.HashSet[String]()
-      for (elem <- filter) {
+      for (elem <- flatten) {
         setTimes.add(elem)
       }
-      if (filter.size==0){
+      if (flatten.size==0){
         setTimes.add("2018-08-11 00:00:00")
       }
       val head = setTimes.head
