@@ -28,5 +28,6 @@
        <mapper resource="sqlMapper/RoleMapper.xml" />
        <mapper resource="sqlMapper/ScreeningUserInfoMapper.xml" />
        <mapper resource="sqlMapper/NewcomBag.xml" />
+       <mapper resource="sqlMapper/RegisterInfo.xml" />
     </mappers>
 </configuration>

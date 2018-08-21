@@ -1,5 +1,6 @@
 package dao.factory;
 
+import mapper.RegisterInfoMapper;
 import mapper.RoleMapper;
 import mapper.ScreeningUserInfoMapper;
 import mapper.NewcomBagMapper;
@@ -22,6 +23,9 @@ public class SqlSessionFactory {
 
     public static NewcomBagMapper getNewcomBagMapper(){
         return  sqlSession.getMapper(NewcomBagMapper.class);
+    }
+    public static RegisterInfoMapper getRegisterInfoMapper(){
+        return  sqlSession.getMapper(RegisterInfoMapper.class);
     }
 
 }

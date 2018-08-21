@@ -4,7 +4,7 @@ import java.io.{FileWriter, File, PrintWriter}
 import java.util
 
 import _root_.util.{TimeUtil, IpUtil}
-import bean.TCollect
+import bean.{RegisterInfo, AiAccountResigterInfo, TCollect}
 import bean.newcombag.NewcomBag
 import constant.Constants
 import dao.ITCollectDao
@@ -38,6 +38,7 @@ object NewcomClient {
       }
       val sc: SparkContext = new SparkContext(sparkConf)
       sc.setLogLevel("WARN")
+      //获取活动用户行为数据
       val mapper: NewcomBagMapper = SqlSessionFactory.getNewcomBagMapper
       val map= new util.HashMap[String,Object]()
       map.put("dayFlag",dayFlag.toString)
@@ -47,7 +48,26 @@ object NewcomClient {
       val cache: RDD[NewcomBag] = sc.parallelize(scalaBuffer, 10).cache()
       val getInnerData: RDD[NewcomBag] = cache.filter(_.getUserType=="1")//得到站内的数据
       val path="C:\\Users\\lenovo\\Desktop\\新人大礼包result\\banResult.xls"
-      
+      //获取注册表单数据
+      val registerInfoMapper = SqlSessionFactory.getRegisterInfoMapper
+      val registerInfoList = registerInfoMapper.selectRegisterInfoList(map)
+      val registerInfoes = JavaConversions.asScalaBuffer(registerInfoList)
+      val resigterInfoRdd: RDD[RegisterInfo] = sc.parallelize(registerInfoes,10).cache()
+      //新人大礼包弹窗展现数
+      upWinFunction(getInnerData)
+      //点击每一个按钮的数量
+      clickEveryFunction(getInnerData)
+      //活动页面的pv,uv
+      countPagePvUv(getInnerData,path)
+      //各个banner位的引流量
+      countBannerPvUv(getInnerData,path)
+      //有多少用户通过新人大礼包正式注册
+      val regUserCount: Long = getRegisterUser(getInnerData,resigterInfoRdd)
+      //点击活动新装机的用户数量
+      val innerCount: Long = getInnerDataPvUv(getInnerData)
+      //转化率 新装机用户/注册用户
+      val d: Double = regUserCount/innerCount.toDouble
+      println("转化滤:"+d)
       //=============================================================================
       //各个banner位置的pv,uv
       //countBannerPvUv(getInnerData,path)
@@ -57,21 +77,154 @@ object NewcomClient {
       val contentCount="分享次数\tshareCount:"+count+"\n\n\n"
       printToFile(path,contentCount)*/
       //=============================================================================
-      //活动页面的pv,uv
-      countPagePvUv(getInnerData,path)
+
       //=============================================================================
       //统计活动页面停留时间
      // countPageTime(getInnerData,path)
       //C:\Users\lenovo\Desktop\新人大礼包result
+      //=============================================================================
+      //统计注册用户数量
+      //val regUserCount: Long = getRegisterUser(getInnerData,resigterInfoRdd)
+      //=============================================================================
+      //计算站外业务数据
+      //getOutPvUv(cache)
+      //统计引入新用户数量
+      // newCount: Long = getOutDataPvUv(getInnerData)
+      //计算注册转化滤
+      //println("新用户注册转化率:"+regUserCount/newCount)
+      //一键领取过大礼包的用户有多少
+      //val bagUserCount: Long = getBagUserCountFunction(getInnerData: RDD[NewcomBag])
       sc.stop()
       val stopped: Boolean = sc.isStopped
       println("任务是否执行结束" + stopped)
     }
   }
+  //新人大礼包弹窗展现数
+  def upWinFunction(getInnerData: RDD[NewcomBag]): Unit ={
+    //过滤掉空的事件名称字段
+    val filter: RDD[NewcomBag] = getInnerData.filter(_.getEventName!=null).filter(_.getEventName!="").filter(_.getEventName!="null")
+    val filterUp: RDD[NewcomBag] = filter.filter(line => {
+      //过滤出弹窗的数量
+      val name: String = line.getEventName
+      val indexOf: Int = name.indexOf("弹窗")
+      if (indexOf >= 0) {
+        true
+      } else {
+        false
+      }
+    })
+    val map: RDD[(String, Int)] = filterUp.map(line => {
+      val eventName = line.getEventName
+      (eventName, line)
+    }).groupByKey().map(line => {
+      val eventName = line._1
+      val it = line._2
+      val size = it.size
+      (eventName, size)
+    })
+    val toList: List[(String, Int)] = map.collect().toList
+    println("2个新人大礼包弹窗展现数:"+toList)
+  }
+  //点击每一个按钮的数量
+  def clickEveryFunction(getInnerData: RDD[NewcomBag]): Unit ={
+    val filter: RDD[NewcomBag] = getInnerData.filter(line => {
+      //val userId: String = line.getUserId
+      val eventName: String = line.getEventName
+      if (eventName != null && eventName != "" && eventName != "null") {
+        true
+      } else {
+        false
+      }
+    })
+    val eventLine: RDD[(String, NewcomBag)] = filter.map(line => {
+      val eventName = line.getEventName
+      (eventName, line)
+    })
+    val groupByKey: RDD[(String, Iterable[NewcomBag])] = eventLine.groupByKey()
+    val map: RDD[(String, Int, Int)] = groupByKey.map(line => {
+      val eventName = line._1
+      val it = line._2
+      val pageCount = it.size
+      val set = mutable.HashSet[String]()
+      for (elem <- it) {
+        val device: String = elem.getDevice
+        set.add(device)
+      }
+      val userCount: Int = set.size
+      (eventName, pageCount, userCount)
+    })
+    map.collect().toList
+  }
+  //领取过大礼包的用户
+  def getBagUserCountFunction(getInnerData: RDD[NewcomBag]): Long ={
+    val getBagData: RDD[NewcomBag] = getInnerData.filter(line => {
+      val userId = line.getUserId
+      val eventName = line.getEventName
+      if (userId != "0" && userId != null && userId != "null" && userId != "" && eventName == "大礼包-一键领取") {
+        //条件表示登录和领取过礼包的用户
+        true
+      } else {
+        false
+      }
+    })
+    val count: Long = getBagData.map(line => {
+      val userId = line.getUserId
+      val eventName = line.getEventName
+      userId
+    }).distinct().count()
+    println("领取过大礼包的用户数量:"+count)
+    count
+  }
+  //站内引流
+  def getInnerDataPvUv(getInnerData: RDD[NewcomBag]) :Long={
+    val filter = getInnerData.filter(line => {//得到未登录用户数据
+      val userId = line.getUserId
+      if (userId == null || userId == "" || userId == "null" || userId == "0") {
+      true
+    } else {
+      false
+    }
+  })
+    val map = filter.map(line => {
+      line.getDevice
+    })
+    val userCount: Long = map.distinct().count()
+    println("引进的用户数量"+userCount)
+    userCount
+  }
 
+  //计算站外业务数据
+  def getOutPvUv(cache: RDD[NewcomBag]): Unit ={
+    //计算站外数据pv,uv
+    val outData = cache.filter(_.getUserType=="0")
+    val outPv = outData.count()
+    println("站外pv:"+outPv)
+    val outUv = outData.map(_.getUserId).distinct().count()
+    println("站外uv:"+outUv)
+    val map = cache.map(line => {
+      val userId = line.getUserId
+      val source = line.getSource
+      (source, line)
+    })
+    val groupByKey = map.groupByKey()
+    val userPageUser = groupByKey.map(line => {
+      val source: String = line._1
+      val lines = line._2
+      val set = mutable.HashSet[String]()
+      for (elem <- lines) {
+        val userId = elem.getUserId
+        set.add(userId)
+      }
+      val userCount = set.size
+      val pageCount = lines.size
+      (source, pageCount, userCount)
+    })
+    val toList = userPageUser.collect().toList
+    println("各个站外来源的pv,uv:"+toList)
+  }
    //各个banner位置的pv,uv
   def countBannerPvUv(getInnerData: RDD[NewcomBag],path:String): Unit ={
-    val filter = getInnerData.filter(_.getBannerId!=null)//过滤掉bannerId为空的数据
+   val filter: RDD[NewcomBag] = getInnerData.filter(_.getBannerId!=null).filter(_.getBannerId!="null").filter(_.getBannerId!="0")//过滤掉bannerId为空的数据
     val bannerIdLines: RDD[(String, Iterable[NewcomBag])] = filter.map(line => {
         val bannerId = line.getBannerId
         (bannerId, line)
@@ -91,44 +244,37 @@ object NewcomClient {
       val uv = set.size //当前banner uv
       (bannerId, pv, uv)
     })
-    bannerIdPvUv.collect().foreach(line => {
-      //文件写入
-      val bannerId = line._1
-      val pv: Int = line._2
-      val uv: Int = line._3
-      val content="各个banner位置的pv,uv\tbannerId:"+bannerId+"\t"+"pv:"+pv+"\t"+"uv:"+uv+"\n"
-      printToFile(path,content)
-    })
+     val toList: List[(String, Int, Int)] = bannerIdPvUv.collect().toList
+     println("各个banner位的引流量"+toList)
+//    bannerIdPvUv.collect().foreach(line => {
+//      //文件写入
+//      val bannerId = line._1
+//      val pv: Int = line._2
+//      val uv: Int = line._3
+//      val content="各个banner位置的pv,uv\tbannerId:"+bannerId+"\t"+"pv:"+pv+"\t"+"uv:"+uv+"\n"
+//      printToFile(path,content)
+//    })
   }
   //活动页面的pv,uv
   def countPagePvUv(getInnerData: RDD[NewcomBag],path:String): Unit ={
-    val filterPageId1: RDD[NewcomBag] = getInnerData.filter(_.getPageId!=null)//过滤出来只有pageId不为空的
-    val filterPageId2: RDD[NewcomBag] = getInnerData.filter(_.getPageId!="")//过滤出来只有pageId不为空的
-
-    val pageIdline: RDD[(String, NewcomBag)] = filterPageId2.map(line =>(line.getPageId,line))
-    val pageIdLines: RDD[(String, Iterable[NewcomBag])] = pageIdline.groupByKey()
-    val pageIdCountUser: RDD[(String, Int, Int)] = pageIdLines.map(line => {
-      val pageId = line._1
-      val lines = line._2
-      val pageCount: Int = lines.size //pv
-      val set: mutable.HashSet[String] = mutable.HashSet[String]()
-      for (elem <- lines) {
-        //val userId = elem.getUserId
-        val device = elem.getDevice//利用设备唯一标识区分用户
-        if (device != null) {
-          set += device
-        }
+    val activityData: RDD[NewcomBag] = getInnerData.filter(f = line => {
+      val eventName = line.getEventName
+      if (eventName == "大礼包-查看" || eventName == "大礼包-一键领取") {
+        true
+      } else {
+        false
       }
-      val userCount = set.size //uv
-      (pageId, pageCount, userCount)
     })
-    pageIdCountUser.foreach(line => {
-      val pageId: String = line._1
-      val pageCount: Int = line._2
-      val userCount: Int = line._3
+    val pv: Long = activityData.count()//pv
+    val deviceRdd: RDD[String] = activityData.map(line => {
+      val device = line.getDevice
+      device
+    })
+    val userCount: Long = deviceRdd.distinct().count() //uv
+    println("活动页面PV/UV:pv="+pv+"   uv="+userCount)
+    /*
       val content="活动页面pvuv\tpageId:"+pageId+"\t"+"pv:"+pageCount+"\t"+"uv:"+userCount+"\n"
-      printToFile(path,content)
-    })
+    })*/
   }
 
   //统计活动页面停留时间
@@ -175,6 +321,33 @@ object NewcomClient {
       printToFile(path,content)
     })
   }
+
+  //计算有多少用户通过该活动注册
+  def getRegisterUser(getInnerData: RDD[NewcomBag],resigterInfoRdd: RDD[RegisterInfo]): Long ={
+    //过滤掉了userId为空的用户
+    val filter: RDD[NewcomBag] = getInnerData.filter(_.getUserId!=null).filter(_.getUserId!="0").filter(_.getUserId!="").filter(_.getUserId!="null")
+    val userIdLine: RDD[(String, NewcomBag)] = filter.map(line => {
+      val userId = line.getUserId
+      (userId, line)
+    })
+    val accountIdLine: RDD[(String, RegisterInfo)] = resigterInfoRdd.map(line => {
+      val accountId = line.getiAccountId()
+      (accountId.toString, line)
+    })
+    val registerCount: Long = accountIdLine.join(userIdLine).count()
+    val join: RDD[(String, (RegisterInfo, NewcomBag))] = accountIdLine.join(userIdLine)//获取注册用户详情
+    join.map(line=> {
+      val userId = line._1
+      val reg = line._2._1
+      val newcomBag = line._2._2
+      val phone = reg.getsPhone()
+      val userName = reg.getsUserName()
+    })
+    println("通过活动注册的用户数量:"+registerCount)
+    registerCount
+  }
+
+  //判断有多少
   def printToFile(path:String,content:String): Unit ={
     val writer = new PrintWriter(new FileWriter(new File(path),true))
     writer.write(content)

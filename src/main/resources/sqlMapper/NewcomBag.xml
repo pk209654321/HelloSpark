@@ -30,7 +30,7 @@
     <select id="selectNewcomBagList" parameterType="java.util.Map" resultMap="NewcomBagList">
         SELECT * FROM newcom_bag
         WHERE 1=1
-        <if test="dayFlag">
+        <if test="dayFlag!=null">
             AND TO_DAYS(Now())-TO_DAYS(buried_time)=#{dayFlag}
         </if>
     </select>

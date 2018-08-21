@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.RegisterInfoMapper">
+    <!--<select id="getRole" parameterType="long" resultType="role">
+        select id, role_name as roleName, note from role where id = #{id}
+    </select>
+    <insert id="insertRole" parameterType="role">
+        insert into role(role_name,note) value(#{roleName},#{note})
+    </insert>
+    <delete id="deleteRole" parameterType="long">
+        delete from role where id=#{id}
+    </delete>-->
+    <resultMap id="RegisterInfoList" type="RegisterInfo" >
+        <result column="iAccountId"  property="iAccountId"></result>
+        <result column="sUserName"  property="sUserName"></result>
+        <result column="sPhone" property="sPhone"></result>
+        <result column="sWbOpenId" property="sWbOpenId"></result>
+        <result column="sWxOpenId" property="sWxOpenId"></result>
+        <result column="sQQOpenId" property="sQQOpenId"></result>
+        <result column="sQqUnionId" property="sQqUnionId"></result>
+        <result column="sWxUnionId" property="sWxUnionId"></result>
+        <result column="sProvince" property="sProvince"></result>
+        <result column="sCity" property="sCity"></result>
+        <result column="iFrom" property="iFrom"></result>
+        <result column="iUserType" property="iUserType"></result>
+        <result column="sDUA" property="sDUA"></result>
+        <result column="sIMEI" property="sIMEI"></result>
+        <result column="time" property="time"></result>
+        <result column="sIP" property="sIP"></result>
+    </resultMap>
+    <select id="selectRegisterInfoList" parameterType="java.util.Map" resultMap="RegisterInfoList">
+        SELECT * FROM t_account_resigter_info t
+        WHERE 1=1
+        <if test="dayFlag!=null">
+            AND TO_DAYS(Now())-TO_DAYS(FROM_UNIXTIME(t.time))=#{dayFlag}
+        </if>
+    </select>
+</mapper>
