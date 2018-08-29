@@ -91,5 +91,10 @@ public class TimeUtil {
     }
 
     public static void main(String[] args) {
+        Date date = new Date();
+        Date nextDate = getNextDate(date, -1);
+        String date2String = TimeUtil.getDate2String("yyyy-MM-dd", nextDate);
+
+        System.out.println(date2String);
     }
 }

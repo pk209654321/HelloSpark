@@ -40,6 +40,24 @@ public class NewcomBag implements Serializable{
     private String startTime;
     private String endTime;
     private String device;
+    private String phone;
+    private String activityName;
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getActivityName() {
+        return activityName;
+    }
+
+    public void setActivityName(String activityName) {
+        this.activityName = activityName;
+    }
 
     public String getUserId() {
         return userId;

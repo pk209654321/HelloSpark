@@ -26,12 +26,20 @@
         <result column="end_time" property="endTime"></result>
         <result column="end_time" property="endTime"></result>
         <result column="device" property="device"></result>
+        <result column="phone" property="phone"></result>
+        <result column="activity_name" property="activityName"></result>
     </resultMap>
     <select id="selectNewcomBagList" parameterType="java.util.Map" resultMap="NewcomBagList">
         SELECT * FROM newcom_bag
         WHERE 1=1
         <if test="dayFlag!=null">
             AND TO_DAYS(Now())-TO_DAYS(buried_time)=#{dayFlag}
+        </if>
+        <if test="activityName!=null">
+            AND  activity_name=#{activityName}
+        </if>
+        <if test="activityName==null">
+            AND activity_name IS  NULL
         </if>
     </select>
 </mapper>
