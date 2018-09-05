@@ -4,7 +4,7 @@ import java.io.{FileWriter, File, PrintWriter}
 import java.util
 import java.util.Date
 
-import _root_.util.{TimeUtil, IpUtil}
+import _root_.util.{ExcelOperaation, TimeUtil, IpUtil}
 import bean.{RegisterInfo, AiAccountResigterInfo, TCollect}
 import bean.newcombag.NewcomBag
 import constant.Constants
@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
 
+import scala.collection.mutable.ArrayBuffer
 import scala.collection.{mutable, JavaConversions}
 
 
@@ -27,6 +28,8 @@ object NewcomClient {
     //1,各个banner位的引流量
     val range = args(0).toInt
     for (dayFlag <- (1 to range).reverse) {
+      //val time: String = getTimeLong(dayFlag)
+      val yyyyMMdd: Long = getTimeLong(dayFlag).toLong
       println("查询的类容范围偏移量offset：" + dayFlag)
       println("查询的类容范围偏移量offset：" + dayFlag)
       println("查询的类容范围偏移量offset：" + dayFlag)
@@ -55,41 +58,40 @@ object NewcomClient {
       val cache: RDD[NewcomBag] = sc.parallelize(scalaBuffer, 10).cache()
 
       val getInnerData: RDD[NewcomBag] = cache.filter(_.getUserType=="1")//得到站内的数据
-      val path="C:\\Users\\lenovo\\Desktop\\新人大礼包result\\banResult.xls"
-      delete(path)
+      val path="C:\\Users\\lenovo\\Desktop\\新人大礼包结果文件\\test.xls"
       //获取注册表单数据
       val registerInfoMapper = SqlSessionFactory.getRegisterInfoMapper
       val registerInfoList = registerInfoMapper.selectRegisterInfoList(map)
       val registerInfoes = JavaConversions.asScalaBuffer(registerInfoList)
       val resigterInfoRdd: RDD[RegisterInfo] = sc.parallelize(registerInfoes,10).cache()
       //统计站外来源业务
-      getOutPvUv(cache,dayFlag,path)
+      getOutPvUv(cache,dayFlag,path,yyyyMMdd)
       //新人大礼包弹窗展现数
-      upWinFunction(getInnerData,dayFlag,path)
+      upWinFunction(getInnerData,dayFlag,path,yyyyMMdd)
       //点击每一个按钮的数量
-      clickEveryFunction(getInnerData,dayFlag,path)
+      clickEveryFunction(getInnerData,dayFlag,path,yyyyMMdd)
       //活动页面的pv,uv
-      countPagePvUv(getInnerData,dayFlag,path)
+      countPagePvUv(getInnerData,dayFlag,path,yyyyMMdd)
       //活动页面的停留时长
-      countPageTime(getInnerData,dayFlag,path)
+      countPageTime(getInnerData,dayFlag,path,yyyyMMdd)
       //各个banner位的引流量
-      countBannerPvUv(getInnerData,dayFlag,path)
+      countBannerPvUv(getInnerData,dayFlag,path,yyyyMMdd)
       //有多少用户通过新人大礼包正式注册
-      val regUserCount: Long = getRegisterUser(getInnerData,resigterInfoRdd,dayFlag,path)
-      //点击活动新装机的用户数量
-      val innerCount: Long = getInnerDataPvUv(getInnerData,dayFlag,path)
+     val regUserCount: Long = getRegisterUser(getInnerData,resigterInfoRdd,dayFlag,path,yyyyMMdd)
+      //点击活动引入用户数量
+     val innerCount: Long = getInnerDataPvUv(getInnerData,dayFlag,path,yyyyMMdd)
       //转化率 新装机用户/注册用户
       //val d: Double = regUserCount/innerCount.toDouble
       //println("转化滤:"+d)
       //一键领取过大礼包的用户有多少
-      val bagUserCount: Long = getBagUserCountFunction(getInnerData: RDD[NewcomBag],dayFlag,path)
+     val bagUserCount: Long = getBagUserCountFunction(getInnerData: RDD[NewcomBag],dayFlag,path,yyyyMMdd)
       sc.stop()
       val stopped: Boolean = sc.isStopped
       println("任务是否执行结束" + stopped)
     }
   }
   //新人大礼包弹窗展现数
-  def upWinFunction(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String): Unit ={
+  def upWinFunction(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String,day:Long): Unit ={
     //过滤掉空的事件名称字段
     val filter: RDD[NewcomBag] = getInnerData.filter(_.getEventName!=null).filter(_.getEventName!="").filter(_.getEventName!="null")
     val filterUp: RDD[NewcomBag] = filter.filter(line => {
@@ -102,7 +104,7 @@ object NewcomClient {
         false
       }
     })
-    val map: RDD[(String, Int)] = filterUp.map(line => {
+    val map: RDD[(String, Int,Int)] = filterUp.map(line => {
       var eventName = line.getEventName
       if (eventName.indexOf("立即领取")>=0){
         eventName="立即领取"
@@ -114,22 +116,38 @@ object NewcomClient {
       val eventName = line._1
       val it = line._2
       val size = it.size
-      (eventName, size)
+      val set: mutable.HashSet[String] = mutable.HashSet[String]()
+      for (elem <- it) {
+        val device: String = elem.getDevice
+        set.add(device)
+      }
+      val userCount: Int = set.size
+      (eventName, size,userCount)
     })
-    val toList: List[(String, Int)] = map.collect().toList
+    val toList: List[(String, Int,Int)] = map.collect().toList
     println("2个新人大礼包弹窗展现数:"+toList)
-    val title="时间\t统计任务名称\t窗口名称\t弹窗展现数\n"
-    printToFile(title,path)
+    val title="时间\t统计任务名称\t窗口名称\t弹窗展现数\tUV\n"
+    val top="2个新人大礼包弹窗展现数\n"
+    //printToFile(top,path)
+    //printToFile(title,path)
     map.foreach(line => {
       val eventName: String = line._1
       val size: Int = line._2
+      val uv: Int = line._3
       val time: String = getTime(dayFlag)
-      val content=time+"\t2个新人大礼包弹窗展现数\t"+eventName+"\t"+size+"\n"
-      printToFile(content,path)
+      val content=time+"\t2个新人大礼包弹窗展现数\t"+eventName+"\t"+size+"\t"+uv+"\n"
+      val value =new util.ArrayList[AnyRef]()
+      value.add(time)
+      //value.add("2个新人大礼包弹窗展现数")
+      value.add(eventName)
+      value.add(size.toString)
+      value.add(uv.toString)
+      ExcelOperaation.addExcel(path,value,2,day)
+      //printToFile(content,path)
     })
   }
   //点击每一个按钮的数量
-  def clickEveryFunction(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String): Unit ={
+  def clickEveryFunction(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String,day:Long): Unit ={
     val filter: RDD[NewcomBag] = getInnerData.filter(line => {
       //val userId: String = line.getUserId
       val eventName: String = line.getEventName
@@ -158,19 +176,28 @@ object NewcomClient {
     })
     val toList: List[(String, Int, Int)] = map.collect().toList
     println("点击每一个按钮的数量:"+toList)
-    val title="时间\t统计任务名称\t按钮名称\t点击数量\n"
-    printToFile(title,path)
+    val title="时间\t统计任务名称\t按钮名称\t点击数量\tUV\n"
+    val top="点击每一个按钮的数量\n"
+    //printToFile(top,path)
+    //printToFile(title,path)
     map.foreach(line => {
       val eventName: String = line._1
       val pv: Int = line._2
       val uv: Int = line._3
       val time: String = getTime(dayFlag)
-      val content=time+"\t点击每一个按钮的数量\t"+eventName+"\t"+pv+"\n"
-      printToFile(content,path)
+      val content=time+"\t点击每一个按钮的数量\t"+eventName+"\t"+pv+"\t"+uv+"\n"
+      //printToFile(content,path)
+      val value1 =new util.ArrayList[AnyRef]()
+      value1.add(time)
+     // value1.add("点击每一个按钮的数量")
+      value1.add(eventName)
+      value1.add(pv.toString)
+      value1.add(uv.toString)
+      ExcelOperaation.addExcel(path,value1,3,day)
     })
   }
   //领取过大礼包的用户
-  def getBagUserCountFunction(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String): Long ={
+  def getBagUserCountFunction(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String,day:Long): Long ={
     val getBagData: RDD[NewcomBag] = getInnerData.filter(line => {
       val userId = line.getUserId
       val eventName = line.getEventName
@@ -188,14 +215,21 @@ object NewcomClient {
     }).distinct().count()
     println("领取过大礼包的用户数量:"+count)
     val title="时间\t任务名称\t用户数量\n"
-    printToFile(title,path )
+    val top="领取过大礼包的用户数量\n"
+    //printToFile(top,path )
+    //printToFile(title,path )
     val time: String = getTime(dayFlag)
     val content=time+"\t领取过大礼包的用户数量\t"+count+"\n"
-    printToFile(content,path)
+    val value1 =new util.ArrayList[AnyRef]()
+    value1.add(time)
+    //value1.add("领取过大礼包的用户数量")
+    value1.add(count.toString)
+    ExcelOperaation.addExcel(path,value1,9,day)
+    //printToFile(content,path)
     count
   }
   //站内--活动引入未登录用户量
-  def getInnerDataPvUv(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String) :Long={
+  def getInnerDataPvUv(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String,day:Long) :Long={
     val filter = getInnerData.filter(line => {//得到未登录用户数据
       val userId = line.getUserId
       if (userId == null || userId == "" || userId == "null" || userId == "0") {
@@ -220,26 +254,45 @@ object NewcomClient {
     val userCount: Long = map.distinct().count()
     println("引进的用户数量"+userCount)
     val title="时间\t任务名称\t用户数量\n"
-    printToFile(title,path)
+    val top="引进的用户数量\n"
+    //printToFile(top,path)
+    //(title,path)
     val time: String = getTime(dayFlag)
     val content=time+"\t活动引入的用户量\t"+userCount+"\n"
-    printToFile(content,path)
+
+    val value1 =new util.ArrayList[AnyRef]()
+    value1.add(time)
+    //value1.add("活动引入的用户量")
+    value1.add(userCount.toString)
+    ExcelOperaation.addExcel(path,value1,8,day)
+    //printToFile(content,path)
     userCount
   }
 
   //计算站外业务数据
-  def getOutPvUv(cache: RDD[NewcomBag],dayFlag:Int,path:String): Unit ={
+  def getOutPvUv(cache: RDD[NewcomBag],dayFlag:Int,path:String,day:Long): Unit ={
     //计算站外数据pv,uv
     val outData = cache.filter(_.getUserType=="0")
     val outPv = outData.count()
     println("站外pv:"+outPv)
     val outUv = outData.map(_.getUserId).distinct().count()
     println("站外uv:"+outUv)
+    val top="站外PV,UV统计\n"
+    printToFile(top,path)
     val title="时间\t任务名称\tPV\tUV\n"
-    printToFile(title,path)
+    //printToFile(title,path)
     val time: String = getTime(dayFlag)
     val content=time+"\t站外PV,UV统计\t"+outPv+"\t"+outUv+"\n"
-    printToFile(content,path)
+    val value1 =new util.ArrayList[AnyRef]()
+    val valArray=Array[String](time,String.valueOf(outPv),String.valueOf(outUv))
+    value1.add(time)
+    //value1.add("站外PV,UV统计")
+    value1.add(outPv.toString)
+    value1.add(outUv.toString)
+    if (outPv!=0){
+      ExcelOperaation.addExcel(path,value1,0,day)
+    }
+    //printToFile(content,path)
     //站外数据访问
     val filter: RDD[NewcomBag] = outData.filter(line => {
       val source: String = line.getSource
@@ -268,21 +321,30 @@ object NewcomClient {
       (source, pageCount, userCount)
     })
     val titleSource="时间\t任务名称\t来源\tPV\tUV\n"
-    printToFile(titleSource,path)
+    val topsr="统计站外来源PV/UV\n"
+    //printToFile(topsr,path)
+    //printToFile(titleSource,path)
     userPageUser.foreach(line => {
       val source: String = line._1
       val pageCount: Int = line._2
       val userCount: Int = line._3
       val time1: String = getTime(dayFlag)
       val content=time1+"\t统计站外来源PV/UV\t"+source+"\t"+pageCount+"\t"+userCount+"\n"
-      printToFile(content,path)
+      //printToFile(content,path)
+      val value2 =new util.ArrayList[AnyRef]()
+      value2.add(time1)
+      //value2.add("统计站外来源PV/UV")
+      value2.add(source.toString)
+      value2.add(pageCount.toString)
+      value2.add(userCount.toString)
+      ExcelOperaation.addExcel(path,value2,1,day)
     })
     val toList = userPageUser.collect().toList
     println("各个站外来源的pv,uv:"+toList)
 
   }
    //各个banner位置的pv,uv
-  def countBannerPvUv(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String): Unit ={
+  def countBannerPvUv(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String,day:Long): Unit ={
      //过滤掉bannerId为空的数据
     val filter: RDD[NewcomBag] = getInnerData.filter(_.getBannerId!=null).filter(_.getBannerId!="null").filter(_.getBannerId!="0").filter(_.getBannerId!="")
      val bannerData: RDD[NewcomBag] = filter.filter(line => {
@@ -318,7 +380,9 @@ object NewcomClient {
      val toList: List[(String, Int, Int)] = bannerIdPvUv.collect().toList
      println("各个banner位的引流量"+toList)
      val title="时间\t任务名称\tbanner位置名称\tPV\tUV\n"
-     printToFile(title,path)
+     val top="各个banner位的引流量\n"
+     //printToFile(top,path)
+     //printToFile(title,path)
     bannerIdPvUv.collect().foreach(line => {
       //文件写入
       val bannerId = line._1
@@ -326,11 +390,18 @@ object NewcomClient {
       val uv: Int = line._3
       val time: String = getTime(dayFlag)
       val content=time+"\t各个banner位的引流量\t"+bannerId+"\t"+pv+"\t"+uv+"\n"
-      printToFile(content,path)
+     // printToFile(content,path)
+      val value1 =new util.ArrayList[AnyRef]()
+      value1.add(time)
+      //value1.add("各个banner位的引流量")
+      value1.add(bannerId.toString)
+      value1.add(pv.toString)
+      value1.add(uv.toString)
+      ExcelOperaation.addExcel(path,value1,6,day)
     })
   }
   //活动页面的pv,uv
-  def countPagePvUv(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String): Unit ={
+  def countPagePvUv(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String,day:Long): Unit ={
     //过滤掉空的
     val activityData: RDD[NewcomBag] = getInnerData.filter(line => {
       val name: String = line.getEventName
@@ -351,17 +422,25 @@ object NewcomClient {
     val userCount: Long = deviceRdd.distinct().count() //uv
     println("活动页面PV/UV:pv="+pv+"   uv="+userCount)
     val title="时间\t任务名称\tPV\tUV\n"
-    printToFile(title,path)
+    val top="活动页面PV/UV\n"
+    ///printToFile(top,path)
+    //printToFile(title,path)
     val time: String = getTime(dayFlag)
     val content=time+"\t活动页面PV/UV\t"+pv+"\t"+userCount+"\n"
-    printToFile(content,path)
+    val value1 =new util.ArrayList[AnyRef]()
+    value1.add(time)
+    //value1.add("活动页面PV/UV")
+    value1.add(pv.toString)
+    value1.add(userCount.toString)
+    ExcelOperaation.addExcel(path,value1,4,day)
+    //printToFile(content,path)
     /*
       val content="活动页面pvuv\tpageId:"+pageId+"\t"+"pv:"+pageCount+"\t"+"uv:"+userCount+"\n"
     })*/
   }
 
   //统计活动页面停留时间
-  def countPageTime(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String): Unit ={
+  def countPageTime(getInnerData: RDD[NewcomBag],dayFlag:Int,path:String,day:Long): Unit ={
       //val newData = filterPageId.filter(_.getPageId=="newBigGift")
       val filter: RDD[NewcomBag] = getInnerData.filter(line => {
         //过滤出活动页面
@@ -390,14 +469,21 @@ object NewcomClient {
     }).sum()
     println("活动页面停留时间:"+sum)
     val title="时间\t任务名称\t停留时间\n"
-    printToFile(title,path)
+    val top="活动页面停留时间\n"
+    //printToFile(top,path)
+    //printToFile(title,path)
     val time: String = getTime(dayFlag)
     val content=time+"\t活动页面停留时间\t"+sum+"\n"
-    printToFile(content,path)
+    val value1 =new util.ArrayList[AnyRef]()
+    value1.add(time)
+    //value1.add("活动页面停留时间")
+    value1.add(sum.toString)
+    ExcelOperaation.addExcel(path,value1,5,day)
+    //printToFile(content,path)
   }
 
   //计算有多少用户通过该活动注册
-  def getRegisterUser(getInnerData: RDD[NewcomBag],resigterInfoRdd: RDD[RegisterInfo],dayFlag:Int,path:String): Long ={
+  def getRegisterUser(getInnerData: RDD[NewcomBag],resigterInfoRdd: RDD[RegisterInfo],dayFlag:Int,path:String,day:Long): Long ={
     //过滤掉了userId为空的用户
     val filter: RDD[NewcomBag] = getInnerData.filter(_.getUserId!=null).filter(_.getUserId!="0").filter(_.getUserId!="").filter(_.getUserId!="null")
     val reData: RDD[NewcomBag] = filter.filter(_.getEventName=="登陆后弹窗-立即领取")
@@ -420,10 +506,18 @@ object NewcomClient {
     })*/
     println("通过活动注册的用户数量:"+registerCount)
     val title="时间\t任务名称\t用户数量\n"
-    printToFile(title,path)
+    val top="通过活动注册的用户数量\n"
+    //printToFile(top,path)
+    //printToFile(title,path)
     val time: String = getTime(dayFlag)
     val content=time+"\t通过活动注册的用户数量\t"+registerCount+"\n"
-    printToFile(content,path)
+    val value1 =new util.ArrayList[AnyRef]()
+    value1.add(time)
+    //value1.add("通过活动注册的用户数量")
+    value1.add(registerCount.toString)
+    ExcelOperaation.addExcel(path,value1,7,day)
+
+    //printToFile(content,path)
     registerCount
   }
   //判断有多少
@@ -434,6 +528,11 @@ object NewcomClient {
     writer.close()
   }
 
+  def getTimeLong(dayFlag:Int): String ={
+    val date: Date = new Date()
+    val nextDate: Date = TimeUtil.getNextDate(date,-dayFlag)
+    TimeUtil.getDate2String("yyyyMMdd",nextDate)
+  }
   def getTime(dayFlag:Int): String ={
     val date: Date = new Date()
     val nextDate: Date = TimeUtil.getNextDate(date,-dayFlag)

@@ -32,11 +32,33 @@ object ZeroActiveClient {
     outEventIdLines.map(line=> {
       val eventId = line._1
       val it = line._2
-      val size = it.size//点击总量
+      val pageCount = it.size//点击总量
       val set: mutable.HashSet[String] = new mutable.HashSet[String]()
       for (elem <- it) {
-        set.add()
+        val userId: String = elem.getUserId
+        set.add(userId)
       }
+      val userCount: Int = set.size
+      (eventId,pageCount,userCount)
+    })
+
+
+    val eventIdObject: RDD[(String, NewcomBag)] = innerFilter.map(line => {
+      val eventId = line.getEventId
+      (eventId, line)
+    })
+    val eventIdObjects: RDD[(String, Iterable[NewcomBag])] = eventIdObject.groupByKey()
+    eventIdObjects.map(line => {
+      val eventId = line._1
+      val it = line._2
+      val pageCount = it.size
+      val set: mutable.HashSet[String] = mutable.HashSet[String]()
+      for (elem <- it) {
+        val device: String = elem.getDevice
+        set+=device
+      }
+      val userCount = set.size
+      (eventId,pageCount,userCount)
     })
   }
 }
