@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.TotalUserActionInfoMapper">
+    <select id="selectTotalUserActionInfoList" parameterType="java.util.Map" resultType="bean.collect.TotalUserActionInfo">
+        SELECT * FROM bd_user_action
+        WHERE 1=1
+        <if test="dayFlag!=null">
+            AND TO_DAYS(Now())-TO_DAYS(create_time)=#{dayFlag}
+        </if>
+        <if test="businessSource!=null">
+            AND business_source=#{businessSource}
+        </if>
+        AND (event like "%pageHome_login%" OR event like "%register_login_click%")
+    </select>
+</mapper>

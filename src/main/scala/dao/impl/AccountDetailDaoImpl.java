@@ -22,7 +22,7 @@ public class AccountDetailDaoImpl implements IAccountDetailDao{
             public void process(ResultSet rs) throws Exception {
                 while (rs.next()){
                     AccountDetail accountDetail = new AccountDetail();
-                    accountDetail.setiAccountId(rs.getInt(1));
+                  /*  accountDetail.setiAccountId(rs.getInt(1));
                     accountDetail.setsUserName(rs.getString(2));
                     accountDetail.setsPhone(rs.getString(3));
                     accountDetail.setsWxOpenId(rs.getString(4));
@@ -47,7 +47,7 @@ public class AccountDetailDaoImpl implements IAccountDetailDao{
                     accountDetail.setiSharesAge(rs.getInt(23));
                     accountDetail.setsEmail(rs.getString(24));
                     accountDetail.setsSource(rs.getString(25));
-                    accountDetail.setTimeStr(rs.getString(26));
+                    accountDetail.setTimeStr(rs.getString(26));*/
                     accountDetails.add(accountDetail);
                 }
             }

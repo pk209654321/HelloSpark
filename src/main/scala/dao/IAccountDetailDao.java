@@ -1,6 +1,7 @@
 package dao;
 
 import bean.AccountDetail;
+import mapper.Mapper;
 
 import java.util.List;
 

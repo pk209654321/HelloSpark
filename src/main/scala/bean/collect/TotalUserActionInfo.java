@@ -1,10 +1,12 @@
 package bean.collect;
 
+import java.io.Serializable;
+
 /**
  * Created by lenovo on 2018/9/5.
  * 用户行为数据
  */
-public class TotalUserInfo {
+public class TotalUserActionInfo implements Serializable{
     private Long id;
     private String create_time;
     private String update_time;

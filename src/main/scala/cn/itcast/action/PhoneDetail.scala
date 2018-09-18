@@ -34,7 +34,8 @@ object PhoneDetail {
       .getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
     import spark.implicits._
-    val detailDF: DataFrame = getDetailDF(spark)
+   // val detailDF: DataFrame = getDetailDF(spark)
+   val detailDF: DataFrame=null
     detailDF.show()
     val infoDF: DataFrame = getInfoDF(spark)
     infoDF.show()
@@ -86,7 +87,7 @@ object PhoneDetail {
     })
   }
 
-  def getDetailDF(spark:SparkSession):DataFrame ={
+  /*def getDetailDF(spark:SparkSession):DataFrame ={
     val accountDetailDao: IAccountDetailDao = DAOFactory.getAccountDetailDao
     val sql="select *,FROM_UNIXTIME(t.iGenTimeStamp) timeStr from t_account_detail t"
     val arrayDetail= Array[String]()
@@ -104,7 +105,7 @@ object PhoneDetail {
     import spark.implicits._
     val detailDF: DataFrame = deailRdd.toDF()
     detailDF
-  }
+  }*/
   def getInfoDF(spark:SparkSession): DataFrame ={
     val dao: IInfoDao = DAOFactory.getInfoDao
     val infoList: util.List[Info] = dao.selectInfoList()

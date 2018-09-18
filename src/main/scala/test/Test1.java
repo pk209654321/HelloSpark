@@ -13,13 +13,13 @@ import java.sql.ResultSet;
  * Created by lenovo on 2018/6/29.
  */
 public class Test1 {
-    private String a = "a";
-
-   /* public static void main(String[] args) {
-        Test1 test1 = new Test1();
-        String a = test1.a;
-        System.out.println(a);
+    public static void main(String[] args) {
+        String content="SN=IOSCJPH10_GA&VN=102042517&BN=0&VC=APPLE&MO=iPhone&RL=414_736&CHID=1000&LCID=0&RV=&OS=11.1.2&DV=V1";
+        String[] split = content.split("&");
+        if (split.length==11){
+            System.out.println("长度:" + split.length);
+            //String s = split[6];
+            //System.out.println(s);
+        }
     }
-*/
-
 }

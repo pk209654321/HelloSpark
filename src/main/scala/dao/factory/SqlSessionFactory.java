@@ -1,5 +1,7 @@
 package dao.factory;
 
+import bean.collect.TotalUserActionInfo;
+import conf.MapperFactory;
 import mapper.*;
 import org.apache.ibatis.session.SqlSession;
 import util.mybatis.SqlSessionFactoryUtil;
@@ -28,6 +30,13 @@ public class SqlSessionFactory {
     }
     public static LoginResultMapper getLoginResultMapper(){
         return  sqlSession.getMapper(LoginResultMapper.class);
+    }
+    public static TotalUserActionInfoMapper getTotalUserActionInfoMapper(){
+        return sqlSession.getMapper(TotalUserActionInfoMapper.class);
+    }
+
+    public static AccountDetailMapper getAccountDetailMapper(){
+        return MapperFactory.createMapper(AccountDetailMapper.class,"business");
     }
 
 }

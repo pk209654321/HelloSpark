@@ -6,15 +6,25 @@
        (
        user_id,
        login_count,
-       insert_time
+       insert_time,
+       phone
        )
        values
        <foreach collection="list" item="item" index= "index" separator =",">
            (
            #{item.user_id},
            #{item.login_count},
-           #{item.insert_time}
+           #{item.insert_time},
+           #{item.phone}
            )
        </foreach>
    </insert>
+
+    <update id="updateLoginResult" parameterType="bean.login.LoginResult">
+      update login_result
+        <trim prefix="set" suffixOverrides=",">
+            <if test="phone!=null">phone=#{phone},</if>
+        </trim>
+      WHERE user_id=#{user_id}
+    </update>
 </mapper>

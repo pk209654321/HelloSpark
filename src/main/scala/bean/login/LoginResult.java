@@ -11,9 +11,18 @@ import java.util.Date;
 @Alias("LoginResult")
 public class LoginResult implements Serializable{
     private Long id;
+    private String phone;
     private Integer user_id;
     private Integer login_count;
     private Date insert_time;
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
     public Long getId() {
         return id;

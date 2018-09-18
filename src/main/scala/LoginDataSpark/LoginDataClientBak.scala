@@ -3,19 +3,19 @@ package LoginDataSpark
 import java.util
 import java.util.Date
 
-import _root_.util.{IpUtil, TimeUtil}
-import bean.login.{LoginData, LoginResult}
+import _root_.util.{TimeUtil, IpUtil}
+import bean.login.{LoginResult, LoginData}
 import dao.factory.SqlSessionFactory
-import mapper.{LoginDataMapper, LoginResultMapper}
+import mapper.{LoginResultMapper, LoginDataMapper}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{SparkContext, SparkConf}
 
-import scala.collection.{JavaConversions, mutable}
+import scala.collection.{mutable, JavaConversions}
 
 /**
   * Created by lenovo on 2018/9/4.
   */
-object LoginDataClient2 {
+object LoginDataClientBak {
   def main(args: Array[String]) {
     val range = args(0).toInt
 
@@ -29,6 +29,7 @@ object LoginDataClient2 {
       val sc: SparkContext = new SparkContext(sparkConf)
       sc.setLogLevel("WARN")
     for (dayFlag <- (1 to range).reverse) {
+      val loginDataMapper: LoginDataMapper = SqlSessionFactory.getLoginDataMapper
       val loginResultMapper: LoginResultMapper = SqlSessionFactory.getLoginResultMapper
       val map= new util.HashMap[String,Object]()
       map.put("dayFlag",dayFlag.toString)//查询当天的时间

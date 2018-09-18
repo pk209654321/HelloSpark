@@ -20,7 +20,20 @@
                 <property name="poolMaximumIdleConnections" value="${poolMaximumIdleConnections}" />
                 <property name="poolTimeToWait" value="${poolTimeToWait}" />
                 <property name="poolMaximumCheckoutTime" value="${poolMaximumCheckoutTime}" />
-
+            </dataSource>
+        </environment>
+        <environment id="business">
+            <transactionManager type="JDBC" />
+            <dataSource type="POOLED">
+                <property name="driver" value="${driver}" />
+                <property name="url" value="${business.jdbc.url}" />
+                <property name="driver" value="${business.jdbc.driverClassName}" />
+                <property name="username" value="${business.jdbc.username}" />
+                <property name="password" value="${business.jdbc.password}" />
+                <property name="poolMaximumActiveConnections" value="${poolMaximumActiveConnections}" />
+                <property name="poolMaximumIdleConnections" value="${poolMaximumIdleConnections}" />
+                <property name="poolTimeToWait" value="${poolTimeToWait}" />
+                <property name="poolMaximumCheckoutTime" value="${poolMaximumCheckoutTime}" />
             </dataSource>
         </environment>
     </environments>
@@ -31,5 +44,7 @@
        <mapper resource="sqlMapper/RegisterInfo.xml" />
        <mapper resource="sqlMapper/LoginResult.xml" />
        <mapper resource="sqlMapper/LoginData.xml" />
+       <mapper resource="sqlMapper/TotalUserActionInfo.xml" />
+       <mapper resource="sqlMapper/AccountDetail.xml" />
     </mappers>
 </configuration>
