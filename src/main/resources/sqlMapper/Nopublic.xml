@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.AiShareResultMapper">
+    <insert id="insertNoPublic" parameterType="NoPublic">
+        INSERT INTO bd_master_statis
+            (
+            phone,
+            nick_name,
+            wx_name,
+            live_browse,
+            special_read,
+            source_user,
+            teacher_id,
+            live_day,
+            stay_time,
+            column_name,
+            read_day,
+            read_time,
+            add_browse,
+            create_time
+            )
+        VALUES
+            (
+            #{phone},
+            #{nick_name},
+            #{wx_name},
+            #{live_browse},
+            #special_read,
+            #{source_user},
+            #{teacher_id},
+            #{live_day},
+            #{stay_time},
+            #{column_name},
+            #{read_day},
+            #{read_time},
+            #{add_browse},
+            #{create_time}
+            )
+    </insert>
+</mapper>

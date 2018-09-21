@@ -34,9 +34,10 @@ public class SqlSessionFactory {
     public static TotalUserActionInfoMapper getTotalUserActionInfoMapper(){
         return sqlSession.getMapper(TotalUserActionInfoMapper.class);
     }
-
     public static AccountDetailMapper getAccountDetailMapper(){
         return MapperFactory.createMapper(AccountDetailMapper.class,"business");
     }
-
+    public static AiShareResultMapper getAiResultMapper(){
+        return sqlSession.getMapper(AiShareResultMapper.class);
+    }
 }

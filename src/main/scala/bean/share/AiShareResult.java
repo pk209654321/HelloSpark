@@ -1,8 +1,11 @@
 package bean.share;
 
+import org.apache.ibatis.type.Alias;
+
 /**
  * Created by lenovo on 2018/9/18.
  */
+@Alias("AiShareResult")
 public class AiShareResult {
     /*id	bigint
     app_channel	varchar

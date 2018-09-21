@@ -47,7 +47,7 @@ object LoginDataClient {
       println("------------------行为数据查询")
       val loginResultMapper: LoginResultMapper = SqlSessionFactory.getLoginResultMapper
       val userActionInfoMapper: TotalUserActionInfoMapper = SqlSessionFactory.getTotalUserActionInfoMapper
-     // map.put("businessSource",UserActionConstants.BUSINESS_SOURCE_ACK)
+      // map.put("businessSource",UserActionConstants.BUSINESS_SOURCE_ACK)
       val infoList: util.List[TotalUserActionInfo] = userActionInfoMapper.selectTotalUserActionInfoList(map)
       val scalaBuffer: mutable.Buffer[TotalUserActionInfo] = JavaConversions.asScalaBuffer(infoList)
       val parallelize: RDD[TotalUserActionInfo] = sc.parallelize(scalaBuffer,parNum)

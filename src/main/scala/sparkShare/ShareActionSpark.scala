@@ -19,6 +19,9 @@ import scala.collection.{JavaConversions, mutable}
 /**
   * Created by lenovo on 2018/9/17.
   */
+
+
+
 object ShareActionSpark {
   def main(args: Array[String]) {
     val range = args(0).toInt
@@ -34,24 +37,26 @@ object ShareActionSpark {
     sc.setLogLevel("WARN")
     //val business: LoginDataMapper = MapperFactory.createMapper(classOf[LoginDataMapper], "business")
     for (dayFlag <- (1 to range).reverse) {
-      val map= new util.HashMap[String,Object]()
-      map.put("dayFlag",dayFlag.toString)//查询当天的时间
-      //获取行为数据
-      val mapper: TotalUserActionInfoMapper = SqlSessionFactory.getTotalUserActionInfoMapper
-      val infoList: util.List[TotalUserActionInfo] = mapper.selectTotalUserActionInfoList(map)
-      val scalaBuffer: mutable.Buffer[TotalUserActionInfo] = JavaConversions.asScalaBuffer(infoList)
-      val parallelize: RDD[TotalUserActionInfo] = sc.parallelize(scalaBuffer,10)
+      val map = new util.HashMap[String, Object]()
+      map.put("dayFlag", dayFlag.toString) //查询当天的时间
+
       //获取业务数据
       val detailMapper: AccountDetailMapper = SqlSessionFactory.getAccountDetailMapper
       val sduaList: util.List[AccountDetail] = detailMapper.selectSduaList(map)
       val sduaBuffer: mutable.Buffer[AccountDetail] = JavaConversions.asScalaBuffer(sduaList)
-      val sduaRdd: RDD[AccountDetail] = sc.parallelize(sduaBuffer,10)
+      val sduaRdd: RDD[AccountDetail] = sc.parallelize(sduaBuffer, 10)
+      //获取行为数据
+      val mapper: TotalUserActionInfoMapper = SqlSessionFactory.getTotalUserActionInfoMapper
+      val infoList: util.List[TotalUserActionInfo] = mapper.selectTotalUserActionInfoList(map)
+      val scalaBuffer: mutable.Buffer[TotalUserActionInfo] = JavaConversions.asScalaBuffer(infoList)
+      val parallelize: RDD[TotalUserActionInfo] = sc.parallelize(scalaBuffer, 10)
+
     }
   }
 
-  def analyzeShareAction(parallelize: RDD[TotalUserActionInfo],sduaRdd: RDD[AccountDetail]): Unit ={
+  def analyzeShareAction(parallelize: RDD[TotalUserActionInfo], sduaRdd: RDD[AccountDetail]): Unit = {
     //过滤出来分享回流数据
-    val filter: RDD[TotalUserActionInfo] = parallelize.filter(_.getBusiness_source==UserActionConstants.BUSINESS_SOURCE_SHARE)
+    val filter: RDD[TotalUserActionInfo] = parallelize.filter(_.getBusiness_source == UserActionConstants.BUSINESS_SOURCE_SHARE)
     //行为数据
     val userIdLine: RDD[(Integer, TotalUserActionInfo)] = filter.map(line => {
       val user_id = line.getUser_id
@@ -91,34 +96,35 @@ object ShareActionSpark {
       ((string2Date, user_id, first_persion, share_channel, share_creative, share_scene, supreior_page_id, orElse), (read_user_id, user_source))
     })
     val groupByKey: RDD[((Date, Integer, Integer, Integer, String, Integer, Integer, String), Iterable[(String, Integer)])] = allMap.groupByKey()
-     groupByKey.map(line => {
-       val _1: (Date, Integer, Integer, Integer, String, Integer, Integer, String) = line._1
+    groupByKey.map(line => {
+      val _1: (Date, Integer, Integer, Integer, String, Integer, Integer, String) = line._1
       val iterable: Iterable[(String, Integer)] = line._2
-      val readPv = iterable.size //pv
-      val set: mutable.HashSet[String] = mutable.HashSet[String]()//计算阅读uv
-      val backSet: mutable.HashSet[String] = mutable.HashSet[String]()//计算回流用户uv
+      val readPv = iterable.size //阅读pv
+      val set: mutable.HashSet[String] = mutable.HashSet[String]() //计算阅读uv
+      val backSet: mutable.HashSet[String] = mutable.HashSet[String]() //计算回流用户uv
       for (elem <- iterable) {
         val user_id: String = elem._1
         val source: Integer = elem._2
-        if(source==0&&user_id!=null){//站内
+        if (source == 0 && user_id != null) {
+          //站内
           backSet.add(user_id)
         }
         set.add(user_id)
       }
-       val backUserCount: Int = backSet.size
-      val readUv = set.size
-      (_1, readPv, readUv,backUserCount)
+      val backUserCount: Int = backSet.size//回流用户
+      val readUv = set.size//阅读uv
+      (_1, readPv, readUv, backUserCount)
     })
   }
 
   //将字符串转换成相应的对象
-  def getJsonToObject(content:String): ShareBusiness ={
+  def getJsonToObject(content: String): ShareBusiness = {
     val business: ShareBusiness = new ShareBusiness
     val clazz: Class[_ <: ShareBusiness] = business.getClass
     try {
-      JSON.parseObject(content,clazz)
+      JSON.parseObject(content, clazz)
     } catch {
-      case e:Exception=> println(e.getMessage)
+      case e: Exception => println(e.getMessage)
         business
     }
   }

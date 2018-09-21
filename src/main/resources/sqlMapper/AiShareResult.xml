@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.AiShareResultMapper">
+    <insert id="" parameterType="AiShareResult">
+        INSERT INTO ai_share_result
+            (
+            app_channel,
+            recommend_id,
+            share_scene,
+            share_creative,
+            share_channel,
+            superior_name,
+            up_uv,
+            up_pv,
+            first_persion,
+            read_uv,
+            read_pv,
+            return_user,
+            new_register_user,
+            insert_time
+            )
+        VALUES
+            (
+            #{app_channel},
+            #{recommend_id},
+            #{share_scene},
+            #{share_creative},
+            #{share_channel},
+            #{superior_name},
+            #{up_uv},
+            #{up_pv},
+            #{first_persion},
+            #{read_uv},
+            #{read_pv},
+            #{return_user},
+            #{new_register_user},
+            #{insert_time}
+            )
+    </insert>
+</mapper>
