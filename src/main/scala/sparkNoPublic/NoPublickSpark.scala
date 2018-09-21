@@ -94,7 +94,7 @@ object NoPublickSpark {
       val sum: Double = timeList.sum//直播时长
       val size: Int = liveFilter.size//直播浏览次数
 
-      val filter1: _U = it.filter(line => {
+      val special: Iterable[TotalUserActionInfo] = it.filter(line => {
         val event_name: String = line.getEvent_name
         if (event_name.indexOf("首席观察") > 0 || event_name.indexOf("名师讲堂") > 0) {
           true
@@ -102,9 +102,10 @@ object NoPublickSpark {
           false
         }
       })
-      filter1
-      //专栏阅读数
-      //专栏浏览数
+      val specialClickData: Iterable[TotalUserActionInfo] = special.filter(_.getEvent_name.indexOf("内容点击")>0)
+      val specialClickCount: Int = specialClickData.size//专栏阅读数
+      val specialBrowse = special.size//专栏浏览数
+
     })
 
   }
